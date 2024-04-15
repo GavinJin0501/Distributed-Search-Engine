@@ -7,7 +7,6 @@ function CrawlerWorkflow(config) {
   this.gid = config.gid || 'all';
   this.keys = config.urls || [];
   this.memory = config.memory || true;
-  this.persistAfterReduce = config.persistAfterReduce || true;
 }
 
 /**
@@ -26,7 +25,12 @@ CrawlerWorkflow.prototype.map = function(key, value) {
         return response.text();
       })
       .then((data) => {
-        return {[value]: data};
+        return new Promise((resolve, reject) => {
+          const key = 'page-' + btoa(value);
+          global.distribution[this.gid].store.put(data, key, (err, res) => {
+            resolve({[value]: null});
+          });
+        });
       })
       .catch((error) => {
         console.log(error);
@@ -41,7 +45,7 @@ CrawlerWorkflow.prototype.map = function(key, value) {
  * @return {Object} {url: url-html-content}
  */
 CrawlerWorkflow.prototype.reduce = function(key, value) {
-  return {['page-' + btoa(key)]: value};
+  return {[key]: null};
 };
 
 const crawlerWorkflow = (config) => new CrawlerWorkflow(config);

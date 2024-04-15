@@ -19,7 +19,6 @@ function MapReduceService(config) {
   this.hashFunc = id[config.hashFuncName]; // hash function used
   this.name = config.serviceName;
   this.memory = config.memory || false;
-  this.persistAfterReduce = config.persistAfterReduce || false;
 
   this.afterMapList = [];
   this.afterCombineMap = {};
@@ -199,22 +198,7 @@ MapReduceService.prototype.reduce = function(cb) {
       const pair = this.reduceFunc(key, vals);
       afterReduce.push(pair);
     });
-
-    if (this.persistAfterReduce) {
-      let persisted = 0;
-      for (const pair of afterReduce) {
-        const key = Object.keys(pair)[0];
-        const value = pair[key][0];
-        global.distribution[this.gid].store.put(value, key, (err, res) => {
-          persisted++;
-          if (persisted === afterReduce.length) {
-            cb(null, afterReduce.map((pair) => Object.keys(pair)[0]));
-          }
-        });
-      }
-    } else {
-      cb(null, afterReduce);
-    }
+    cb(null, afterReduce);
   };
 
   if (this.memory) {

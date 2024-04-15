@@ -96,7 +96,7 @@ DistributedMapReduceService.prototype.mapPhase = function(config, callback) {
       deregisterIfError(config.serviceName, err, callback);
       return;
     }
-
+    // console.log('all.map res:', res);
     // callback(null, res);
 
     // shuffle, combine, and sort

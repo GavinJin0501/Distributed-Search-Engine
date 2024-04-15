@@ -275,8 +275,7 @@ test('crawler', (done) => {
 
       distribution.crawler.mr.exec(crawler, (e, v) => {
         try {
-          console.log(v);
-          const result = v.map((url) => atob(url.split('page-')[1]));
+          const result = v.map((pair) => Object.keys(pair)[0]);
           const expected = dataset.map((pair) => Object.values(pair)[0]);
           expect(result).toEqual(expect.arrayContaining(expected));
           done();
@@ -301,6 +300,7 @@ test('crawler', (done) => {
     });
   });
 });
+
 
 test('url extraction', (done) => {
   done();
