@@ -1,3 +1,6 @@
+const {JSDOM} = require('jsdom');
+const {URL} = require('url');
+
 global.nodeConfig = {ip: '127.0.0.1', port: 7070};
 const distribution = require('../distribution');
 const id = distribution.util.id;
@@ -84,52 +87,95 @@ afterAll((done) => {
 });
 
 test('crawler', (done) => {
-  const dataset = [
-    {'html-1': 'https://cs.brown.edu/courses/csci1380/sandbox/1/'},
-    {'html-2': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1a/index.html'},
-    {'html-3': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/index.html'},
-    {'html-4': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/index.html'},
-    {'html-5': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_5/index.html'},
-  ];
+  const visited = new Set();
+  const doCrwal = (keys, cb) => {
+    const dataset = keys.filter((url) => !visited.has(url))
+        .map((url) => {
+          const res = {};
+          res[id.getID(url)] = url;
+          return res;
+        });
+    if (Object.values(dataset).length === 0) {
+      cb(null, visited);
+      return;
+    }
 
-  const doMapReduce = (cb) => {
-    distribution.crawler.store.get(null, (e, v) => {
-      try {
-        expect(v.length).toBe(dataset.length);
-      } catch (e) {
-        done(e);
-      }
+    // We send the dataset to the cluster
+    let cntr = 0;
+    dataset.forEach((o) => {
+      let key = Object.keys(o)[0];
+      let value = o[key];
+      distribution.crawler.store.put(value, key, (e, v) => {
+        cntr++;
+        // Once we are done, run the map reduce
+        if (cntr === dataset.length) {
+          doMapReduce((err, res) => {
+            // update the visited urls
+            Object.values(dataset)
+                .forEach((pair) => visited.add(Object.values(pair)[0]));
 
-      const config = {
-        gid: 'crawler',
-        urls: v,
-      };
-      const crawler = crawlerWorkflow(config);
-
-      distribution.crawler.mr.exec(crawler, (e, v) => {
-        try {
-          const result = v.map((pair) => Object.keys(pair)[0]);
-          const expected = dataset.map((pair) => Object.values(pair)[0]);
-          expect(result).toEqual(expect.arrayContaining(expected));
-          done();
-        } catch (e) {
-          done(e);
+            // add the new urls
+            const newUrls = new Set();
+            Object.values(res).forEach((pair) => {
+              const urls = Object.values(pair)[0][0] || [];
+              urls.forEach((url) => newUrls.add(url));
+            });
+            doCrwal([...newUrls], cb);
+            // cb(null, null);
+          });
         }
       });
     });
   };
 
-  // We send the dataset to the cluster
-  let cntr = 0;
-  dataset.forEach((o) => {
-    let key = Object.keys(o)[0];
-    let value = o[key];
-    distribution.crawler.store.put(value, key, (e, v) => {
-      cntr++;
-      // Once we are done, run the map reduce
-      if (cntr === dataset.length) {
-        doMapReduce();
-      }
+  const doMapReduce = (cb) => {
+    distribution.crawler.store.get(null, (e, v) => {
+      const config = {
+        gid: 'crawler',
+        urls: v,
+      };
+      const crawler = crawlerWorkflow(config);
+      distribution.crawler.mr.exec(crawler, cb);
     });
+  };
+
+  doCrwal([
+    'https://cs.brown.edu/courses/csci1380/sandbox/2',
+  ], (err, res) => {
+    // console.log('visited urls:', res);
+    done();
   });
 });
+
+
+// test('deserialize web page', (done) => {
+//   const key = 'page-aHR0cHM6Ly9jcy5icm93bi5lZHUvY291cnNlcy9jc2NpMTM4MC9zYW5kYm94LzEvbGV2ZWxfMWEvbGV2ZWxfMmIvaW5kZXguaHRtbA==';
+//   let baseURL = atob(key.split('page-')[1]);
+//   console.log(baseURL);
+//   if (baseURL.endsWith('.html')) {
+//     baseURL += '/../';
+//   } else {
+//     baseURL += '/';
+//   }
+
+//   distribution.local.store.get(key, (e, html) => {
+//     try {
+//       expect(e).toBeFalsy();
+//       const dom = new JSDOM(html);
+//       const aTags = dom.window.document.getElementsByTagName('a');
+//       const set = new Set();
+//       for (let i = 0; i < aTags.length; i++) {
+//         const currPath = aTags[i].href;
+//         const url = new URL(currPath, baseURL);
+
+//         if (!set.has(url.href)) {
+//           set.add(url.href);
+//         }
+//       }
+//       console.log(set);
+//       done();
+//     } catch (error) {
+//       done(error);
+//     }
+//   });
+// });

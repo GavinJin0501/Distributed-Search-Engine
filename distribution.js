@@ -2,6 +2,11 @@
 
 const util = require('./distribution/util/util.js');
 const args = require('yargs').argv;
+const {JSDOM} = require('jsdom');
+const {URL} = require('url');
+
+global.JSDOM = JSDOM;
+global.URL = URL;
 
 // Default configuration
 global.nodeConfig = global.nodeConfig || {

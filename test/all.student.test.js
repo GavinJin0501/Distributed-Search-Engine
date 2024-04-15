@@ -275,9 +275,8 @@ test('crawler', (done) => {
 
       distribution.crawler.mr.exec(crawler, (e, v) => {
         try {
-          const result = v.map((pair) => Object.keys(pair)[0]);
           const expected = dataset.map((pair) => Object.values(pair)[0]);
-          expect(result).toEqual(expect.arrayContaining(expected));
+          expect(v).toEqual(expect.arrayContaining(expected));
           done();
         } catch (e) {
           done(e);

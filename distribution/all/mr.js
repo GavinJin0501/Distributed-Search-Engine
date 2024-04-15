@@ -97,6 +97,7 @@ DistributedMapReduceService.prototype.mapPhase = function(config, callback) {
       return;
     }
     // console.log('all.map res:', res);
+    // console.log(res['c65b0']);
     // callback(null, res);
 
     // shuffle, combine, and sort
