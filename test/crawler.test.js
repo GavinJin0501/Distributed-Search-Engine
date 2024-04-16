@@ -1,15 +1,9 @@
-const {JSDOM} = require('jsdom');
-const {URL} = require('url');
-
 global.nodeConfig = {ip: '127.0.0.1', port: 7070};
 const distribution = require('../distribution');
 const id = distribution.util.id;
 const crawlerWorkflow = require('../distribution/workflow/crawler');
 
 const groupsTemplate = require('../distribution/all/groups');
-
-const ncdcGroup = {};
-const dlibGroup = {};
 const crwalerGroup = {};
 
 /*
@@ -31,14 +25,6 @@ const n3 = {ip: '127.0.0.1', port: 7112};
 beforeAll((done) => {
   /* Stop the nodes if they are running */
 
-  ncdcGroup[id.getSID(n1)] = n1;
-  ncdcGroup[id.getSID(n2)] = n2;
-  ncdcGroup[id.getSID(n3)] = n3;
-
-  dlibGroup[id.getSID(n1)] = n1;
-  dlibGroup[id.getSID(n2)] = n2;
-  dlibGroup[id.getSID(n3)] = n3;
-
   crwalerGroup[id.getSID(n1)] = n1;
   crwalerGroup[id.getSID(n2)] = n2;
   crwalerGroup[id.getSID(n3)] = n3;
@@ -56,16 +42,11 @@ beforeAll((done) => {
   distribution.node.start((server) => {
     localServer = server;
 
-    const ncdcConfig = {gid: 'ncdc'};
     startNodes(() => {
-      groupsTemplate(ncdcConfig).put(ncdcConfig, ncdcGroup, (e, v) => {
-        const dlibConfig = {gid: 'dlib'};
-        groupsTemplate(dlibConfig).put(dlibConfig, dlibGroup, (e, v) => {
-          const crawlConfig = {gid: 'crawler'};
-          groupsTemplate(crawlConfig).put(crawlConfig, crwalerGroup, (e, v) => {
-            done();
-          });
-        });
+      const crawlConfig = {gid: 'crawler'};
+      // const crawlConfig = {gid: 'crawler', hash: id.consistentHash};
+      groupsTemplate(crawlConfig).put(crawlConfig, crwalerGroup, (e, v) => {
+        done();
       });
     });
   });
@@ -121,9 +102,6 @@ test('crawler', (done) => {
               urls.forEach((url) => newUrls.add(url));
             });
 
-            // if (newUrls.has(undefined)) {
-            //   console.log('undefined bug:', res);
-            // }
             // console.log('visited:', visited);
             // console.log('newUrls:', newUrls);
             doCrwal([...newUrls], cb);
@@ -146,16 +124,17 @@ test('crawler', (done) => {
   };
 
   doCrwal([
-    'https://cs.brown.edu/courses/csci1380/sandbox/1',
+    'https://cs.brown.edu/courses/csci1380/sandbox/1/',
   ], (err, res) => {
     // console.log('visited urls:', res);
+    console.log('final visited web pages: ', res.size);
     done();
   });
 });
 
 
 // test('deserialize web page', (done) => {
-//   const key = 'page-aHR0cHM6Ly9jcy5icm93bi5lZHUvY291cnNlcy9jc2NpMTM4MC9zYW5kYm94LzEvbGV2ZWxfMWEvbGV2ZWxfMmIvaW5kZXguaHRtbA==';
+//   const key = '';
 //   let baseURL = atob(key.split('page-')[1]);
 //   console.log(baseURL);
 //   if (baseURL.endsWith('.html')) {

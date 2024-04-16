@@ -18,6 +18,9 @@ function CrawlerWorkflow(config) {
  */
 CrawlerWorkflow.prototype.map = function(key, value) {
   let baseURL = value;
+  if (baseURL.endsWith('/')) {
+    baseURL = baseURL.slice(0, -1);
+  }
   if (baseURL.endsWith('.html')) {
     baseURL += '/../';
   } else {
@@ -51,7 +54,6 @@ CrawlerWorkflow.prototype.map = function(key, value) {
         });
       })
       .catch((error) => {
-        // console.log('hahaha:', error);
         return {};
       });
 };

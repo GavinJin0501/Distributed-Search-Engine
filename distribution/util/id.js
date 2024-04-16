@@ -57,12 +57,15 @@ function consistentHash(kid, nids) {
     ringList.push(i);
   }
   ringList.push(nids.length);
-  const kidInteger = idToNum(kid);
+  // const kidInteger = idToNum(kid);
+  const kidInteger = parseInt(kid, 16);
 
   // sort the list
   ringList.sort(function(a, b) {
-    const aId = a === nids.length ? kidInteger : idToNum(nids[a]);
-    const bId = b === nids.length ? kidInteger : idToNum(nids[b]);
+    // const aId = a === nids.length ? kidInteger : idToNum(nids[a]);
+    // const bId = b === nids.length ? kidInteger : idToNum(nids[b]);
+    const aId = a === nids.length ? kidInteger : parseInt(nids[a], 16);
+    const bId = b === nids.length ? kidInteger : parseInt(nids[b], 16);
     return aId - bId;
   });
 
