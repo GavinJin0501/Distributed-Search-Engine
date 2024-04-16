@@ -62,7 +62,7 @@ MapReduceService.prototype.map = function(cb) {
           mappedVal.then((data) => {
             mappedVal = data;
 
-            if (mappedVal) {
+            if (Object.values(mappedVal) > 0) {
               if (Array.isArray(mappedVal)) {
                 this.afterMapList.push(...mappedVal);
               } else {
@@ -102,7 +102,12 @@ MapReduceService.prototype.preReduce = function(cb) {
       if (this.afterCombineMap[key] === undefined) {
         this.afterCombineMap[key] = [];
       }
-      this.afterCombineMap[key].push(val);
+
+      if (Array.isArray(val)) {
+        this.afterCombineMap[key].push(...val);
+      } else {
+        this.afterCombineMap[key].push(val);
+      }
     }
   };
 

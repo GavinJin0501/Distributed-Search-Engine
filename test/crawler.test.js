@@ -116,10 +116,16 @@ test('crawler', (done) => {
 
             // add the new urls
             const newUrls = new Set();
-            Object.values(res).forEach((pair) => {
-              const urls = Object.values(pair)[0][0] || [];
+            res.forEach((pair) => {
+              const urls = Object.values(pair)[0] || [];
               urls.forEach((url) => newUrls.add(url));
             });
+
+            // if (newUrls.has(undefined)) {
+            //   console.log('undefined bug:', res);
+            // }
+            // console.log('visited:', visited);
+            // console.log('newUrls:', newUrls);
             doCrwal([...newUrls], cb);
             // cb(null, null);
           });
@@ -140,7 +146,7 @@ test('crawler', (done) => {
   };
 
   doCrwal([
-    'https://cs.brown.edu/courses/csci1380/sandbox/2',
+    'https://cs.brown.edu/courses/csci1380/sandbox/1',
   ], (err, res) => {
     // console.log('visited urls:', res);
     done();

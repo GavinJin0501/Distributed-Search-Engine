@@ -135,7 +135,6 @@ DistributedMapReduceService.prototype.reducePhase = function(config, callback) {
     const resList = [];
     errList.push(...Object.values(err));
     Object.values(res).forEach((val) => resList.push(...val));
-
     // deregister the service after complete
     distribution[gid].routes.del(config.serviceName, (err, res) => {
       callback(errList, resList);
