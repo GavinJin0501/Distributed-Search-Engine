@@ -62,12 +62,10 @@ MapReduceService.prototype.map = function(cb) {
           mappedVal.then((data) => {
             mappedVal = data;
 
-            if (Object.values(mappedVal) > 0) {
-              if (Array.isArray(mappedVal)) {
-                this.afterMapList.push(...mappedVal);
-              } else {
-                this.afterMapList.push(mappedVal);
-              }
+            if (Array.isArray(mappedVal)) {
+              this.afterMapList.push(...mappedVal);
+            } else if (Object.values(mappedVal).length > 0) {
+              this.afterMapList.push(mappedVal);
             }
 
             doComplete();
