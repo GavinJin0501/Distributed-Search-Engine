@@ -59,10 +59,11 @@ CrawlerWorkflow.prototype.map = function(key, value) {
 /**
  *
  * @param {String} key url
- * @param {String} value web content
- * @return {Object} {url: url-html-content}
+ * @param {String} value list of new urls
+ * @return {Object} {url: [new urls]}
  */
 CrawlerWorkflow.prototype.reduce = function(key, value) {
+  // console.log('crawler.reduce: ', key, value);
   return {[key]: value};
 };
 
