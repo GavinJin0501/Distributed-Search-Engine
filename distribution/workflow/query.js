@@ -17,7 +17,6 @@ function QueryWorkflow(config) {
  * @return {Object} {url: url-html-content}
  */
 QueryWorkflow.prototype.map = function(key, value) {
-  console.log('Map function called');
   return new Promise((resolve, reject) => {
     // eslint-disable-next-line max-len
     // Remember to keep the group id the same. Dynamic group id will require additional work

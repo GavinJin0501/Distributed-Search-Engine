@@ -133,7 +133,6 @@ test('crawler', (done) => {
       distribution.crawler.mem.put('fungi', 'query', (e, v) => {
         distribution.crawler.mr.exec(crawler, (e, v) => {
           try {
-            console.log('Output from exec:', v);
             const expectedArray = [
               'fungi | https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_6/index.html 2 https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_6/index.html 2',
               'fungi insect firefli | https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_6/index.html 1 https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_6/index.html 1',
