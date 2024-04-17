@@ -133,8 +133,10 @@ DistributedPersistentMemoryService.prototype.reconf = function(prevGroup, cb) {
         return;
       }
 
-      const keys = [];
-      Object.values(sidToKeys).forEach((subKeys) => keys.push(...subKeys));
+      const keySet = new Set();
+      Object.values(sidToKeys).forEach((subKeys) =>
+        subKeys.forEach((subKey) => keySet.add(subKey)));
+      const keys = [...keySet];
 
       // no key-value paired stored
       if (keys.length === 0) {

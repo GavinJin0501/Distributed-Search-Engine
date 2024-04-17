@@ -10,7 +10,6 @@ const SID = id.getSID(global.nodeConfig);
  */
 function PersistentMemoryService() {
   this.location = path.resolve(__dirname, `../../store/s-${SID}`);
-  this.groupKeysMap = new Map();
 
   if (!fs.existsSync(this.location)) {
     fs.mkdirSync(this.location, {recursive: true});
@@ -19,6 +18,8 @@ function PersistentMemoryService() {
 
 /**
  * Save a key-value pair to local
+ * key is null / string => invoked locally, path: this.location/key
+ * key is object => invoked distributedly, path: this.location/gid/key
  *
  * @param {Object} value
  * @param {String} key
@@ -26,14 +27,21 @@ function PersistentMemoryService() {
  */
 PersistentMemoryService.prototype.put = function(value, key, cb) {
   let gid = null;
+  let folderPath = this.location;
+
+  // invoked distributedly
   if (key !== null && typeof key === 'object') {
     gid = key.gid;
     key = key.key;
+    folderPath = path.resolve(this.location, gid);
+
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, {recursive: true});
+    }
   }
 
   key = key ? key : id.getID(value);
-  // key = id.convertToAlphanumericOnlyString(key);
-  const filePath = path.resolve(this.location, key);
+  const filePath = path.resolve(folderPath, key);
   const fileContent = serialization.serialize(value);
 
   fs.writeFile(filePath, fileContent, (err) => {
@@ -42,70 +50,49 @@ PersistentMemoryService.prototype.put = function(value, key, cb) {
       return;
     }
 
-    // if it is distributed put, add key info to the groupKeysMap
-    if (gid !== null) {
-      if (!this.groupKeysMap.has(gid)) {
-        this.groupKeysMap.set(gid, new Set());
-      }
-      this.groupKeysMap.get(gid).add(key);
-    }
     cb(null, value);
   });
 };
 
 /**
  *  Get the value of the key
+ *  key is null / string => invoked locally, path: this.location/key
+ *  key is object => invoked distributedly, path: this.location/gid/key
  *
  * @param {String} key
  * @param {Function} cb
  */
 PersistentMemoryService.prototype.get = function(key, cb) {
-  // if key is null, return all keys
+  let gid = null;
+  let folderPath = this.location;
+
+  // invoked distributedly
+  if (key !== null && typeof key === 'object') {
+    gid = key.gid;
+    key = key.key;
+    folderPath = path.resolve(this.location, gid);
+
+    if (!fs.existsSync(folderPath)) {
+      cb(new Error(`Key '${key}' does not exist in group '${gid}'`), null);
+      return;
+    }
+  }
+
+  // if key is null, return all keys in the folder
   if (key === null) {
-    fs.readdir(this.location, (err, fileList) => {
+    fs.readdir(folderPath, (err, fileList) => {
       if (err) {
         cb(new Error(err.message), null);
       } else {
+        fileList = fileList.filter((fileName) => {
+          const entryPath = path.resolve(folderPath, fileName);
+          return fs.statSync(entryPath).isFile();
+        });
         cb(null, fileList);
       }
     });
-    return;
-  }
-
-  // local get request
-  if (typeof key === 'string') {
-    // key = id.convertToAlphanumericOnlyString(key);
-    const filePath = path.resolve(this.location, key);
-
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        cb(new Error(err.message), null);
-      } else {
-        cb(null, serialization.deserialize(data));
-      }
-    });
-    return;
-  }
-
-  // distribtued get request
-  // console.log(`I am ${global.nodeConfig.port}: ` + key);
-  const gid = key.gid;
-  key = key.key;
-
-  if (key === null) {
-    let keyArr = [];
-    if (this.groupKeysMap.has(gid)) {
-      keyArr = Array.from(this.groupKeysMap.get(gid));
-    }
-    cb(null, keyArr);
-    return;
-  }
-
-  // key = id.convertToAlphanumericOnlyString(key);
-  const filePath = path.resolve(this.location, key);
-  if (!this.groupKeysMap.has(gid) || !this.groupKeysMap.get(gid).has(key)) {
-    cb(new Error(`Key '${key}' does not exist.`), null);
   } else {
+    const filePath = path.resolve(folderPath, key);
     fs.readFile(filePath, (err, data) => {
       if (err) {
         cb(new Error(err.message), null);
@@ -130,33 +117,32 @@ PersistentMemoryService.prototype.del = function(key, cb) {
   }
 
   let gid = null;
+  let folderPath = this.location;
   if (typeof key === 'object') {
     gid = key.gid;
     key = key.key;
-    if (!this.groupKeysMap.has(gid) || !this.groupKeysMap.get(gid).has(key)) {
-      cb(new Error(`Key '${key}' does not exist.`), null);
-      return;
-    }
+    folderPath = path.resolve(this.location, gid);
+
+    // if (!fs.existsSync(folderPath)) {
+    //   cb(new Error(`Key '${key}' does not exist in group '${gid}'`), null);
+    //   return;
+    // }
   }
 
-  // key = id.convertToAlphanumericOnlyString(key);
-  const filePath = path.resolve(this.location, key);
+  const filePath = path.resolve(folderPath, key);
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
       cb(new Error(err.message), null);
-    } else {
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          cb(new Error(err.message), null);
-        } else {
-          if (gid) {
-            this.groupKeysMap.get(gid).delete(key);
-          }
-          cb(null, serialization.deserialize(data));
-        }
-      });
+      return;
     }
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        cb(new Error(err.message), null);
+      } else {
+        cb(null, serialization.deserialize(data));
+      }
+    });
   });
 };
 
