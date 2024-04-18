@@ -3,3 +3,5 @@ submission.zip
 submission/javascript/src/main
 store
 bak
+.DS_Store
+*.txt

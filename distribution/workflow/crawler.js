@@ -12,48 +12,66 @@ function CrawlerWorkflow(config) {
 /**
  * Map function for crawler
  *
- * @param {String} key
- * @param {String} value url
+ * @param {String} urlHash
+ * @param {String} url url
  * @return {Object} {url: [new urls extracted from url]}
  */
-CrawlerWorkflow.prototype.map = function(key, value) {
-  let baseURL = value;
+CrawlerWorkflow.prototype.map = function(urlHash, url) {
+  let baseURL = url;
   if (baseURL.endsWith('/')) {
     baseURL = baseURL.slice(0, -1);
   }
-  if (baseURL.endsWith('.html')) {
+  if (baseURL.endsWith('.html') || baseURL.endsWith('.txt')) {
     baseURL += '/../';
   } else {
     baseURL += '/';
   }
 
-  return fetch(value)
+  const extractUrls = (html) => {
+    const $ = global.cheerio.load(html);
+    const links = $('a');
+    const set = new Set(
+        links.map((index, element) => {
+          const currPath = $(element).attr('href');
+          if (!currPath || currPath.startsWith('?')) {
+            return baseURL;
+          }
+          return new URL(currPath, baseURL).href;
+        }).get(),
+    );
+    set.delete(baseURL);
+    return set;
+  };
+
+  return fetch(url)
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error('Network response was not ok:', response);
         }
         return response.text();
       })
       .then((html) => {
         return new Promise((resolve, reject) => {
-          const key = 'page-' + btoa(value);
-          global.distribution[this.gid].store.put(html, key, (err, res) => {
-            const dom = new global.JSDOM(html);
-            const aTags = dom.window.document.getElementsByTagName('a');
-            const set = new Set();
-            for (let i = 0; i < aTags.length; i++) {
-              const currPath = aTags[i].href;
-              const url = new global.URL(currPath, baseURL);
+          const newUrls = extractUrls(html);
+          const key = 'page-' + urlHash.slice(4);
+          const data = [url, html];
 
-              if (!set.has(url.href)) {
-                set.add(url.href);
-              }
-            }
-            resolve({[value]: [...set]});
-          });
+          // // for sanbox 3
+          // global.distribution[this.gid].store.put(data, key, (err, res) => {
+          //   resolve({[url]: [...newUrls]});
+          // });
+
+          if (url.endsWith('.txt')) {
+            global.distribution[this.gid].store.put(data, key, (err, res) => {
+              resolve({[url]: [...newUrls]});
+            });
+          } else {
+            resolve({[url]: [...newUrls]});
+          }
         });
       })
       .catch((error) => {
+        console.log(`crawler fetch ${url}:`, error);
         return {};
       });
 };
@@ -65,7 +83,6 @@ CrawlerWorkflow.prototype.map = function(key, value) {
  * @return {Object} {url: [new urls]}
  */
 CrawlerWorkflow.prototype.reduce = function(key, value) {
-  // console.log('crawler.reduce: ', key, value);
   return {[key]: value};
 };
 

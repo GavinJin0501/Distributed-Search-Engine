@@ -3,9 +3,6 @@ const groups = require('./groups');
 const comm = require('./comm');
 const id = require('../util/id');
 
-// Ignore the SSL certificate
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
-
 /**
  * MapReduce Local Service
  *
@@ -43,7 +40,8 @@ MapReduceService.prototype.map = function(cb) {
     if (mapCompletes === this.keys.length) {
       if (!this.memory) {
         const afterMapListKey = this.name + '-afterMapList';
-        store.put(this.afterMapList, afterMapListKey, (err, res) => {
+        const metaKey = {key: afterMapListKey, gid: this.gid};
+        store.put(this.afterMapList, metaKey, (err, res) => {
           cb(null, this.afterMapList);
           this.afterMapList = [];
         });
@@ -53,8 +51,15 @@ MapReduceService.prototype.map = function(cb) {
     }
   };
 
+  if (this.keys.length === 0) {
+    mapCompletes = -1;
+    doComplete();
+    return;
+  }
+
   for (const key of this.keys) {
-    store.get(key, (err, val) => {
+    const metaKey = {key, gid: this.gid};
+    store.get(metaKey, (err, val) => {
       if (!err) {
         let mappedVal = this.mapFunc(key, val);
 
@@ -73,12 +78,10 @@ MapReduceService.prototype.map = function(cb) {
           return;
         }
 
-        if (mappedVal) {
-          if (Array.isArray(mappedVal)) {
-            this.afterMapList.push(...mappedVal);
-          } else {
-            this.afterMapList.push(mappedVal);
-          }
+        if (Array.isArray(mappedVal)) {
+          this.afterMapList.push(...mappedVal);
+        } else if (Object.values(mappedVal).length > 0) {
+          this.afterMapList.push(mappedVal);
         }
       }
       doComplete();
@@ -112,7 +115,8 @@ MapReduceService.prototype.preReduce = function(cb) {
   // combine
   if (!this.memory) {
     const persisKey = this.name + '-afterMapList';
-    store.get(persisKey, (err, res) => {
+    const metaKey = {key: persisKey, gid: this.gid};
+    store.get(metaKey, (err, res) => {
       this.afterMapList = (err) ? [] : res;
       shuffleAndCombine();
       this.redistributeHelper(cb);
@@ -183,7 +187,8 @@ MapReduceService.prototype.redistribute = function(obj, cb) {
  */
 MapReduceService.prototype.preReducePersist = function(cb) {
   const preReduceMapKey = this.name + '-preReduceMap';
-  store.put(this.preReduceMap, preReduceMapKey, (err, res) => {
+  const metaKey = {key: preReduceMapKey, gid: this.gid};
+  store.put(this.preReduceMap, metaKey, (err, res) => {
     cb(null, this.preReduceMap);
     this.preReduceMap = {};
   });
@@ -208,7 +213,8 @@ MapReduceService.prototype.reduce = function(cb) {
     subReduce();
   } else {
     const preReduceMapKey = this.name + '-preReduceMap';
-    store.get(preReduceMapKey, (err, res) => {
+    const metaKey = {key: preReduceMapKey, gid: this.gid};
+    store.get(metaKey, (err, res) => {
       this.preReduceMap = (err) ? {} : res;
       subReduce();
     });
@@ -225,9 +231,11 @@ MapReduceService.prototype.reduce = function(cb) {
 MapReduceService.prototype.deregister = function(cb) {
   if (!this.memory) {
     const afterMapListKey = this.name + '-afterMapList';
-    store.del(afterMapListKey, (err, res) => {
+    const metaKey = {key: afterMapListKey, gid: this.gid};
+    store.del(metaKey, (err, res) => {
       const preReduceMapKey = this.name + '-preReduceMap';
-      store.del(preReduceMapKey, (err, res) => {
+      const metaKey = {key: preReduceMapKey, gid: this.gid};
+      store.del(metaKey, (err, res) => {
         cb(null, `Service '${this.name}' is deleted`);
       });
     });

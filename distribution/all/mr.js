@@ -31,7 +31,6 @@ DistributedMapReduceService.prototype.exec = function(config, callback) {
     const numOfNodes = Object.keys(nodes).length;
     const partialKeys = Array.from({length: numOfNodes}, () => []);
     const hashFunc = distribution[this.context.gid].store.context.hash;
-    // const hashFunc = id.consistentHash;
     for (const key of config.keys) {
       const node = id.getProperNode(key, group, hashFunc);
       const idx = nodes.indexOf(node);
@@ -68,7 +67,7 @@ DistributedMapReduceService.prototype.setupPhase = function(
     config.keys = partialKeys[i];
     comm.send([config, serviceName], remote, (err, res) => {
       if (err) {
-        deregisterIfError(serviceName, err, callback);
+        this.deregisterIfError(serviceName, err, callback);
         return;
       }
       setUpComplete++;
@@ -93,7 +92,7 @@ DistributedMapReduceService.prototype.mapPhase = function(config, callback) {
   // map
   distribution[gid].comm.send([], remote, (err, res) => {
     if (Object.keys(err).length !== 0) {
-      deregisterIfError(config.serviceName, err, callback);
+      this.deregisterIfError(config.serviceName, err, callback);
       return;
     }
     // console.log('all.map res:', res);
@@ -104,7 +103,7 @@ DistributedMapReduceService.prototype.mapPhase = function(config, callback) {
     remote.method = 'preReduce';
     distribution[gid].comm.send([], remote, (err, res) => {
       if (Object.keys(err).length !== 0) {
-        deregisterIfError(config.serviceName, err, callback);
+        this.deregisterIfError(config.serviceName, err, callback);
         return;
       }
 
@@ -135,6 +134,7 @@ DistributedMapReduceService.prototype.reducePhase = function(config, callback) {
     const resList = [];
     errList.push(...Object.values(err));
     Object.values(res).forEach((val) => resList.push(...val));
+
     // deregister the service after complete
     distribution[gid].routes.del(config.serviceName, (err, res) => {
       callback(errList, resList);
@@ -149,11 +149,13 @@ DistributedMapReduceService.prototype.reducePhase = function(config, callback) {
  * @param {Object} err
  * @param {Function} cb
  */
-function deregisterIfError(serviceName, err, cb) {
-  distribution[gid].routes.del(serviceName, (e, r) => {
+DistributedMapReduceService.prototype.deregisterIfError =
+function(serviceName, err, cb) {
+  console.log(err);
+  distribution[this.context.gid].routes.del(serviceName, (e, r) => {
     cb(err, null);
   });
-}
+};
 
 const mr = (config) => new DistributedMapReduceService(config);
 module.exports = mr;

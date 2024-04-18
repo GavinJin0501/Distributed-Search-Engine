@@ -4,9 +4,26 @@ const util = require('./distribution/util/util.js');
 const args = require('yargs').argv;
 const {JSDOM} = require('jsdom');
 const {URL} = require('url');
+const cheerio = require('cheerio');
 
 global.JSDOM = JSDOM;
 global.URL = URL;
+global.cheerio = cheerio;
+
+// // log output to a file
+// const fs = require('fs');
+// const path = require('path');
+
+// const logFilePath = path.join(__dirname, 'log.txt');
+// if (fs.existsSync(logFilePath)) {
+//   fs.truncateSync(logFilePath, 0);
+// }
+// const logStream = fs.createWriteStream(logFilePath, {flags: 'a'});
+
+// console.log = function() {
+//   const message = Array.from(arguments).join(' ');
+//   logStream.write(message + '\n');
+// };
 
 // Default configuration
 global.nodeConfig = global.nodeConfig || {
@@ -16,6 +33,9 @@ global.nodeConfig = global.nodeConfig || {
     console.log('Node started!');
   },
 };
+
+// Ignore the SSL certificate
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 /*
     As a debugging tool, you can pass ip and port arguments directly.

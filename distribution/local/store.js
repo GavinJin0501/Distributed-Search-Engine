@@ -122,11 +122,6 @@ PersistentMemoryService.prototype.del = function(key, cb) {
     gid = key.gid;
     key = key.key;
     folderPath = path.resolve(this.location, gid);
-
-    // if (!fs.existsSync(folderPath)) {
-    //   cb(new Error(`Key '${key}' does not exist in group '${gid}'`), null);
-    //   return;
-    // }
   }
 
   const filePath = path.resolve(folderPath, key);
