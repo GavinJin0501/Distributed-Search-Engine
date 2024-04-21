@@ -80,7 +80,6 @@ DistributedPersistentMemoryService.prototype.put = function(value, key, cb) {
     // Retrieve the node
     const node = id.getProperNode(key, group, this.context.hash);
     const remote = {service: 'store', method: 'put', node};
-    // console.log(key, node);
 
     distribution.local.comm.send([value, metaData], remote, cb);
   });
@@ -174,6 +173,38 @@ DistributedPersistentMemoryService.prototype.reconf = function(prevGroup, cb) {
         }
       });
     });
+  });
+};
+
+/**
+ * Append a value to its corresponding key in a distributed manner
+ * Mainly used in crawler
+ *
+ * @param {Object} value
+ * @param {String} valueKey key of the value to identify the location
+ * @param {String} appendKey key of the file to append
+ * @param {Function} cb
+ */
+DistributedPersistentMemoryService.prototype.append = function(
+    value, valueKey, appendKey, cb) {
+  const metaKey = {valueKey, gid: this.context.gid};
+
+  // Must specify the valueKey and the appendKey
+  if (!valueKey || !appendKey) {
+    cb(new Error('valueKey or appendKey is null!'), nul);
+  }
+
+  distribution.local.groups.get(this.context.gid, (err, group) => {
+    if (err) {
+      cb(err, null);
+      return;
+    }
+
+    // Retrieve the node
+    const node = id.getProperNode(valueKey, group, this.context.hash);
+    const remote = {service: 'store', method: 'append', node};
+
+    distribution.local.comm.send([value, metaKey, appendKey], remote, cb);
   });
 };
 

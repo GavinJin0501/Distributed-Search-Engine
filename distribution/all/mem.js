@@ -168,6 +168,29 @@ DistributedInMemoryService.prototype.reconf = function(prevGroup, cb) {
   });
 };
 
+DistributedInMemoryService.prototype.append = function(
+    value, valueKey, appendKey, cb) {
+  const metaKey = {valueKey, gid: this.context.gid};
+
+  // Must specify the valueKey and the appendKey
+  if (!valueKey || !appendKey) {
+    cb(new Error('valueKey or appendKey is null!'), nul);
+  }
+
+  distribution.local.groups.get(this.context.gid, (err, group) => {
+    if (err) {
+      cb(err, null);
+      return;
+    }
+
+    // Retrieve the node
+    const node = id.getProperNode(valueKey, group, this.context.hash);
+    const remote = {service: 'mem', method: 'append', node};
+
+    distribution.local.comm.send([value, metaKey, appendKey], remote, cb);
+  });
+};
+
 
 const mem = (config) => new DistributedInMemoryService(config);
 module.exports = mem;

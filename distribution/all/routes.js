@@ -18,8 +18,15 @@ function DistributedRoutesService(groupInfo) {
  * @param {*} cb callback function
  */
 DistributedRoutesService.prototype.put = function(service, serviceName, cb) {
-  const remote = {service: 'routes', method: 'put'};
-  distribution[this.context.gid].comm.send([service, serviceName], remote, cb);
+  distribution.local.routes.put(service, serviceName, (err, res) => {
+    if (err) {
+      cb(err, null);
+      return;
+    }
+    const remote = {service: 'routes', method: 'put'};
+    const data = [service, serviceName];
+    distribution[this.context.gid].comm.send(data, remote, cb);
+  });
 };
 
 /**
@@ -29,8 +36,10 @@ DistributedRoutesService.prototype.put = function(service, serviceName, cb) {
  * @param {*} cb callback function
  */
 DistributedRoutesService.prototype.del = function(serviceName, cb) {
-  const remote = {service: 'routes', method: 'del'};
-  distribution[this.context.gid].comm.send([serviceName], remote, cb);
+  distribution.local.routes.del(serviceName, (err, res) => {
+    const remote = {service: 'routes', method: 'del'};
+    distribution[this.context.gid].comm.send([serviceName], remote, cb);
+  });
 };
 
 const routes = (groupInfo) => new DistributedRoutesService(groupInfo);

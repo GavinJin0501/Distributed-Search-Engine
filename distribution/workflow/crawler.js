@@ -4,7 +4,6 @@
  * @param {Object} config
  */
 function CrawlerWorkflow(config) {
-  this.gid = config.gid || 'all';
   this.keys = config.urls || [];
   this.memory = config.memory || true;
 }
@@ -40,40 +39,47 @@ CrawlerWorkflow.prototype.map = function(urlHash, url) {
         }).get(),
     );
     set.delete(baseURL);
+    set.delete(url);
     return set;
   };
 
-  return fetch(url)
+  const fetchPage = () => fetch(url)
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Network response was not ok:', response);
+          console.log('Network response was not ok:', response);
+          resolve({});
+          return;
         }
         return response.text();
       })
       .then((html) => {
         return new Promise((resolve, reject) => {
-          const newUrls = extractUrls(html);
+          let newUrls = url.includes('page=') ? extractUrls(html) : [];
+          // special logic for usenix
+          newUrls = [...newUrls].filter((url) =>
+            url.startsWith('https://www.usenix.org/conference/') &&
+            url.split('/').length > 5,
+          );
           const key = 'page-' + urlHash.slice(4);
-          const data = [url, html];
+          const data = [url, global.convert(html.trim()).trim()];
+          const metaKey = {gid: this.gid, key};
 
-          // // for sanbox 3
-          // global.distribution[this.gid].store.put(data, key, (err, res) => {
-          //   resolve({[url]: [...newUrls]});
-          // });
-
-          if (url.endsWith('.txt')) {
-            global.distribution[this.gid].store.put(data, key, (err, res) => {
+          // for sanbox 3
+          global.distribution.local.store.put(data, metaKey, (err, res) => {
+            if (newUrls.length === 0) {
+              resolve({[url]: [{}]});
+            } else {
               resolve({[url]: [...newUrls]});
-            });
-          } else {
-            resolve({[url]: [...newUrls]});
-          }
+            }
+          });
         });
       })
       .catch((error) => {
-        console.log(`crawler fetch ${url}:`, error);
-        return {};
+        console.log(`crawler fails to fetch ${url}:`, error.message);
+        return {url: [url]};
       });
+
+  return global.limiter.schedule(fetchPage);
 };
 
 /**

@@ -4,26 +4,40 @@ const util = require('./distribution/util/util.js');
 const args = require('yargs').argv;
 const {JSDOM} = require('jsdom');
 const {URL} = require('url');
+const {convert} = require('html-to-text');
 const cheerio = require('cheerio');
+const Bottleneck = require('bottleneck');
 
 global.JSDOM = JSDOM;
 global.URL = URL;
 global.cheerio = cheerio;
+// for usenix
+global.limiter = new Bottleneck({
+  maxConcurrent: 25,
+  minTime: 30,
+});
 
-// // log output to a file
-// const fs = require('fs');
-// const path = require('path');
+// // for openbooks
+// global.limiter = new Bottleneck({
+//   maxConcurrent: 1000,
+//   minTime: 1000,
+// });
+global.convert = convert;
 
-// const logFilePath = path.join(__dirname, 'log.txt');
-// if (fs.existsSync(logFilePath)) {
-//   fs.truncateSync(logFilePath, 0);
-// }
-// const logStream = fs.createWriteStream(logFilePath, {flags: 'a'});
+// log output to a file
+const fs = require('fs');
+const path = require('path');
 
-// console.log = function() {
-//   const message = Array.from(arguments).join(' ');
-//   logStream.write(message + '\n');
-// };
+const logFilePath = path.join(__dirname, 'log.txt');
+if (fs.existsSync(logFilePath)) {
+  fs.truncateSync(logFilePath, 0);
+}
+const logStream = fs.createWriteStream(logFilePath, {flags: 'a'});
+
+console.log = function() {
+  const message = Array.from(arguments).join(' ');
+  logStream.write(message + '\n');
+};
 
 // Default configuration
 global.nodeConfig = global.nodeConfig || {

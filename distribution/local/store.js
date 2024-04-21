@@ -141,6 +141,58 @@ PersistentMemoryService.prototype.del = function(key, cb) {
   });
 };
 
+/**
+ * Append a value to its corresponding key locally
+ * Mainly used in crawler and invoked distributedly
+ *
+ * @param {Object} value
+ * @param {String} valueKey
+ * @param {String} appendKey
+ * @param {Function} cb
+ */
+PersistentMemoryService.prototype.append = function(
+    value, valueKey, appendKey, cb) {
+  let gid = null;
+  let folderPath = this.location;
+
+  // Must specify the valueKey and the appendKey
+  if (appendKey === null) {
+    cb(new Error('valueKey or appendKey is null!'), nul);
+  }
+
+  // invoked distributedly
+  if (valueKey != null && typeof valueKey === 'object') {
+    gid = valueKey.gid;
+    folderPath = path.resolve(this.location, gid);
+
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, {recursive: true});
+    }
+  }
+
+  const filePath = path.resolve(folderPath, appendKey);
+
+  this.get({gid, key: appendKey}, (err, res) => {
+    let fileContent = (res) ? res : [];
+    if (Array.isArray(value)) {
+      fileContent.push(...value);
+    } else {
+      fileContent.push(value);
+    }
+
+    fileContent = serialization.serialize(fileContent);
+
+    fs.writeFile(filePath, fileContent, (err) => {
+      if (err) {
+        cb(new Error(err.message), null);
+        return;
+      }
+
+      cb(null, value);
+    });
+  });
+};
+
 
 const store = new PersistentMemoryService();
 module.exports = store;

@@ -5,7 +5,8 @@ const path = require('path');
 
 const node = global.nodeConfig;
 const distPath = path.resolve(__dirname, '../../distribution.js');
-const pathToNode = '/usr/bin/node';
+const pathToNode = '/usr/bin/node'; // vm
+// const pathToNode = '/opt/homebrew/bin/node'; // my computer
 
 /**
  * Status Service

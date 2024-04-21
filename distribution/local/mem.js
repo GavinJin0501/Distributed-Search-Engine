@@ -120,5 +120,37 @@ InMemoryService.prototype.del = function(key, cb) {
   cb(null, value);
 };
 
+
+InMemoryService.prototype.append = function(value, valueKey, appendKey, cb) {
+  // Must specify the valueKey and the appendKey
+  if (valueKey === null || appendKey === null) {
+    cb(new Error('valueKey or appendKey is null!'), nul);
+    return;
+  }
+
+  if (typeof valueKey === 'object') {
+    const gid = valueKey.gid;
+
+    // add this key to this group
+    if (!this.groupKeysMap.has(gid)) {
+      this.groupKeysMap.set(gid, new Set());
+    }
+    this.groupKeysMap.get(gid).add(appendKey);
+  }
+
+  if (!this.dataMap.has(appendKey)) {
+    this.dataMap.set(appendKey, []);
+  }
+  const list = this.dataMap.get(appendKey);
+
+  if (Array.isArray(value)) {
+    list.push(...value);
+  } else {
+    list.push(value);
+  }
+
+  cb(null, value);
+};
+
 const mem = new InMemoryService();
 module.exports = mem;

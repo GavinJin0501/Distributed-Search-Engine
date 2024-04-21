@@ -44,9 +44,12 @@ RoutesService.prototype.get = function(key, cb=defaultCallback) {
    */
 RoutesService.prototype.put = function(service, key, cb=defaultCallback) {
   if (this.getMap[key] !== undefined) {
-    const error = new Error('Service \'${key}\' already exists in routes');
+    const error = new Error(`Service \'${key}\' already exists in routes`);
     cb(error, null);
-  } else if (key.startsWith('mr-')) {
+    return;
+  }
+
+  if (key.startsWith('mr-')) {
     // map reduce functions
     this.getMap[key] = mr(service);
     cb(null, key);

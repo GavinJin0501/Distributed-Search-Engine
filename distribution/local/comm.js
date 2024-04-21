@@ -47,7 +47,6 @@ CommService.prototype.send = function(message, remote, cb=defaultCallback) {
   });
 
   request.on('error', (error) => {
-    // console.log(message, remote, cb);
     cb(new Error(error.message), null);
   });
 
