@@ -7,6 +7,7 @@ const {URL} = require('url');
 const {convert} = require('html-to-text');
 const cheerio = require('cheerio');
 const Bottleneck = require('bottleneck');
+const {spawnSync} = require('child_process');
 
 global.JSDOM = JSDOM;
 global.URL = URL;
@@ -16,6 +17,7 @@ global.limiter = new Bottleneck({
   maxConcurrent: 25,
   minTime: 30,
 });
+global.spawnSync = spawnSync;
 
 // // for openbooks
 // global.limiter = new Bottleneck({
@@ -27,6 +29,7 @@ global.convert = convert;
 // log output to a file
 const fs = require('fs');
 const path = require('path');
+const {spawnSync} = require('child_process');
 
 const logFilePath = path.join(__dirname, 'log.txt');
 if (fs.existsSync(logFilePath)) {
