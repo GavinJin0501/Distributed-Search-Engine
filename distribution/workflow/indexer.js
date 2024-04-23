@@ -1,7 +1,9 @@
 
 function IndexerWorkflow(config) {
   this.gid = config.gid || 'all';
-  this.keys = config.urls || ['page-d52c05b38ba5d8bf0bb1cfbefd22950f323c22b4064b73f723a9c768947af708'];
+  this.keys = config.urls || ['page-8e411dcde3fc6885d58c2ada8e84d3974f515ae07f63b27a506fb346975f856a', 'page-a1d8ea1b54ef02ca9c45fd344673e8af2869f617946d96fb21896016a2a5dfc4', 'placeholder'];
+  this.keepKeysOrder = config.keepKeysOrder || true;
+  // this.keys = config.urls || ['page-d52c05b38ba5d8bf0bb1cfbefd22950f323c22b4064b73f723a9c768947af708'];
   this.memory = config.memory || true;
 }
 

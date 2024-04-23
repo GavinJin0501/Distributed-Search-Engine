@@ -55,6 +55,7 @@ const start = function(started) {
     if (node.port === 8000) {
       // console.log('node:', started.toString());
     }
+    console.log(`Node started at ${node.ip}:${node.port}`);
     started(server);
   });
 };
