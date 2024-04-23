@@ -1,7 +1,7 @@
 
 function IndexerWorkflow(config) {
   this.gid = config.gid || 'all';
-  this.keys = config.urls || ['page-8e411dcde3fc6885d58c2ada8e84d3974f515ae07f63b27a506fb346975f856a', 'page-a1d8ea1b54ef02ca9c45fd344673e8af2869f617946d96fb21896016a2a5dfc4', 'placeholder'];
+  this.keys = config.urls || ['placeholder', 'placeholder', 'placeholder'];
   this.keepKeysOrder = config.keepKeysOrder || true;
   // this.keys = config.urls || ['page-d52c05b38ba5d8bf0bb1cfbefd22950f323c22b4064b73f723a9c768947af708'];
   this.memory = config.memory || true;
@@ -12,10 +12,12 @@ IndexerWorkflow.prototype.map = function(key='key', value='value') {
   const SID = global.distribution.util.id.getSID(global.nodeConfig);
   console.log('key:'+key);
   // return {'mapped': 'yess'};
-
+  console.log('path is : ' + global.dirname);
   console.error('Inside indexer map');
-  const scriptPath = './indexer_helper/index.sh';
-
+  const scriptPath = global.path.join(global.dirname, './distribution/workflow/indexer_helper/index.sh');
+  const indexFilePath = global.path.join(global.dirname, './distribution/workflow/indexer_helper');
+  const indexHelperPath = global.path.join(global.dirname, `/store/s-${SID}/${this.gid}/index-${SID}_${this.gid}.txt`);
+  console.log('indexHelper path is : ' + indexHelperPath);
   return new Promise((resolve, reject) => {
     global.distribution.local.store.get({key: null, gid: this.gid}, (e, v) => {
       console.log('process started' + v.length);
@@ -29,8 +31,9 @@ IndexerWorkflow.prototype.map = function(key='key', value='value') {
                 {key: ele, gid: this.gid}, (e, v)=>{
                   console.log('file name is : ' + ele);
                   console.log('file contents are : '+v);
+                  console.log('path is : ' + global.dirname);
                   const result = global.spawnSync('sh',
-                      [scriptPath, v[1], v[0], `../../store/s-${SID}/${this.gid}/index-${SID}_${this.gid}.txt`]);
+                      [scriptPath, v[1], v[0], indexHelperPath,indexFilePath]);
                   if (result.status === 0) {
                     console.log('Script executed successfully.');
                     console.log('Output:', result.stdout.toString());

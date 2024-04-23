@@ -8,7 +8,9 @@ const {convert} = require('html-to-text');
 const cheerio = require('cheerio');
 const Bottleneck = require('bottleneck');
 const {spawnSync} = require('child_process');
-
+const path = require('path');
+global.path = path;
+global.dirname = __dirname;
 global.JSDOM = JSDOM;
 global.URL = URL;
 global.cheerio = cheerio;
@@ -28,7 +30,7 @@ global.convert = convert;
 
 // log output to a file
 const fs = require('fs');
-const path = require('path');
+// const path = require('path');
 
 const logFilePath = path.join(__dirname, 'log.txt');
 if (fs.existsSync(logFilePath)) {

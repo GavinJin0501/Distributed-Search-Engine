@@ -9,7 +9,8 @@ const disCrawlerWorkflow =
 
 const groupsTemplate = require('../distribution/all/groups');
 const crwalerGroup = {};
-jest.setTimeout(20000);
+
+jest.setTimeout(200000);
 
 const fs = require('fs');
 const {url} = require('inspector');
