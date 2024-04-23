@@ -2,7 +2,7 @@ const http = require('http');
 const {routes} = require('./local');
 const util = require('../util/util');
 const node = global.nodeConfig;
-
+const groupsTemplate = require('../all/groups');
 const start = function(started) {
   const server = http.createServer((req, res) => {
     // Callback function to send back response
@@ -49,13 +49,30 @@ const start = function(started) {
       });
     });
   });
+  const crawlerSetup = function (cb) {
 
+    // WE NEED TO CHANGE THIS TO MATCH FOR AWS INSTANCES. WE ALSO HAVE TO DEPLOY THIS NODE LAST OR HAVE THIS NODE SPAWN THE OTHERS
+    if (node.port === 8080) {
+      const crwalerGroup = {};
+      const n1 = {ip: '127.0.0.1', port: 7110};
+      const n2 = {ip: '127.0.0.1', port: 7111};
+      const n3 = {ip: '127.0.0.1', port: 7112};
+      crwalerGroup[global.distribution.util.id.getSID(n1)] = n1;
+      crwalerGroup[global.distribution.util.id.getSID(n2)] = n2;
+      crwalerGroup[global.distribution.util.id.getSID(n3)] = n3;
+      groupsTemplate({gid: 'crawler'}).put({gid: 'crawler'}, crwalerGroup, (e, v) => {
+        cb();
+      });
+    }
+    else {
+      cb()
+    }
+  }
   server.listen(node.port, node.ip, () => {
     global.nodeServer = server;
-    if (node.port === 8000) {
-      // console.log('node:', started.toString());
-    }
-    started(server);
+    crawlerSetup(()=> {
+      started(server);
+    })
   });
 };
 

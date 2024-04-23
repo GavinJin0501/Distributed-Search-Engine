@@ -1,4 +1,4 @@
-const distribution = global.distribution;
+let distribution = global.distribution;
 
 function DistributedGroupsService(groupInfo) {
   this.context = {};
@@ -35,6 +35,7 @@ DistributedGroupsService.prototype.get = function(gid, cb) {
  * @param {Function} cb
  */
 DistributedGroupsService.prototype.put = function(group, nodes, cb) {
+  distribution = global.distribution;
   distribution.local.groups.put(group, nodes, (err, val) => {
     const remote = {service: 'groups', method: 'put'};
     distribution[this.context.gid].comm.send([group, nodes], remote, (e, v) => {
