@@ -8,6 +8,7 @@ function QueryWorkflow(config) {
   this.keys = config.indexes || [];
   this.memory = config.memory || true;
   this.persistAfterReduce = config.persistAfterReduce || true;
+  this.keepKeysOrder = config.keepKeysOrder || true;
 }
 /**
  * Map function for querying

@@ -45,6 +45,7 @@ const mem = require('./mem');
 // persistent
 const store = require('./store');
 
+const query = require('./query');
 
 /* Routes Service */
 
@@ -56,6 +57,7 @@ routes.put(rpc, 'rpc', () => {});
 routes.put(gossip, 'gossip', () => {});
 routes.put(mem, 'mem', () => {});
 routes.put(store, 'store', () => {});
+routes.put(query, 'query', () => {});
 
 module.exports = {
   status: status,
@@ -66,4 +68,5 @@ module.exports = {
   rpc: rpc,
   mem: mem,
   store: store,
+  query: query,
 };
