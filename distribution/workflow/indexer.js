@@ -30,10 +30,10 @@ IndexerWorkflow.prototype.map = function(key='key', value='value') {
             global.distribution.local.store.get(
                 {key: ele, gid: this.gid}, (e, v)=>{
                   console.log('file name is : ' + ele);
-                  console.log('file contents are : '+v);
+                  // console.log('file contents are : '+v);
                   console.log('path is : ' + global.dirname);
                   const result = global.spawnSync('sh',
-                      [scriptPath, v[1], v[0], indexHelperPath,indexFilePath]);
+                      [scriptPath, v[1], v[0], indexHelperPath, indexFilePath]);
                   if (result.status === 0) {
                     console.log('Script executed successfully.');
                     console.log('Output:', result.stdout.toString());
@@ -50,7 +50,7 @@ IndexerWorkflow.prototype.map = function(key='key', value='value') {
                 });
 
             const intervalId = setInterval(() => {
-              console.log('Checking condition...');
+              // console.log('Checking condition...');
               if (processedPages.length >= pageCount) {
                 console.log('Condition met. Stopping timer.');
                 clearInterval(intervalId);
