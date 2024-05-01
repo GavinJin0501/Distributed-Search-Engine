@@ -152,6 +152,18 @@ test('Coordinator node should be running', () => {
 //     }
 //   });
 // }, 1000000);
+test('indexer', (done) => {
+  console.log('starting test');
+  const config = {
+    gid: 'crawler',
+  };
+  const indexer = indexerWorkflow(config);
+  distribution.crawler.mr.exec(indexer, (e, v)=>{
+    if (v) {
+      done();
+    }
+  });
+}, 20000000);
 
 // test query
 test('query',(done)=>{
