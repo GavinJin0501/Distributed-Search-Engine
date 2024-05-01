@@ -72,7 +72,6 @@ MapReduceService.prototype.doNotify = function(phaseName, data, cb) {
 MapReduceService.prototype.map = function(cb) {
   // tell the coordinator that this node can start to map
   cb(null, 'Ready to start map...');
-
   let mapCompletes = 0;
   const doComplete = () => {
     mapCompletes++;
@@ -84,11 +83,11 @@ MapReduceService.prototype.map = function(cb) {
         store.put(this.afterMapList, metaKey, (err, res) => {
           this.doNotify('mapPhase', this.afterMapList, (err, res) => {
             this.afterMapList = [];
-            // if (err) {
-            //   console.log('map notify fails:', err);
-            // } else {
-            //   console.log('map notify succeeds:', res);
-            // }
+            if (err) {
+              console.log('map notify fails:', err);
+            } else {
+              console.log('map notify succeeds:', res);
+            }
           });
         });
       } else {
@@ -115,11 +114,10 @@ MapReduceService.prototype.map = function(cb) {
     store.get(metaKey, (err, val) => {
       if (!err) {
         let mappedVal = this.mapFunc(key, val);
-
+        console.log("mapped Val",mappedVal);
         if (mappedVal instanceof Promise) {
           mappedVal.then((data) => {
             mappedVal = data;
-
             if (Array.isArray(mappedVal)) {
               this.afterMapList.push(...mappedVal);
             } else if (Object.values(mappedVal).length > 0) {

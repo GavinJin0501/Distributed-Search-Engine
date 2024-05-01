@@ -190,7 +190,7 @@ DistributedMapReduceService.prototype.setupPhase = function(
           this.deregister(err, serviceName, serviceConfig.finalCb);
           return;
         }
-
+        console.log("setting up phase")
         this.notify({phaseName: 'setUpPhase', serviceName});
       });
     }
@@ -215,7 +215,6 @@ DistributedMapReduceService.prototype.mapPhase = function(serviceName) {
       this.deregister(err, serviceName, serviceConfig.finalCb);
       return;
     }
-
     // should receive all worker nodes saying "Ready to start map..."
     // console.log('all.mapPhase is ready:',
     //     Object.values(res).length === this.context.numOfNodes);
@@ -233,7 +232,6 @@ DistributedMapReduceService.prototype.shufflePhase = function(serviceName) {
       this.deregister(err, serviceName, serviceConfig.finalCb);
       return;
     }
-
     // should receive all worker nodes saying "Ready to start shuffle..."
     // console.log('all.shufflePhase is ready:',
     //     Object.values(res).length === this.context.numOfNodes);
@@ -259,7 +257,6 @@ DistributedMapReduceService.prototype.reducePhase = function(serviceName) {
       this.deregister(err, serviceName, serviceConfig.finalCb);
       return;
     }
-
     // should receive all worker nodes saying "Ready to start shuffle..."
     // console.log('all.reducePhase is ready:',
     //     Object.values(res).length === this.context.numOfNodes);

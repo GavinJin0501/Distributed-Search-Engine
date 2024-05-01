@@ -1,6 +1,5 @@
-const http = require('http');
 const serialization = require('../util/serialization.js');
-
+const http = require('http');
 /**
  * Comm Service
  */

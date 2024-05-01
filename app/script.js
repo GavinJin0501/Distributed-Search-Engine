@@ -3,22 +3,99 @@ document.getElementById('searchForm').addEventListener('submit', function(event)
     var searchTerm = document.getElementById('searchInput').value;
     // trim the search term 
     searchTerm = searchTerm.trim();
+    var message =[searchTerm];
+    var serializedTerm =  serialize({message:message});
     document.getElementById('resultList').textContent = 'Search for: ' + searchTerm;
-    // http://node_ip:node_port/service/method
-    fetch('http://localhost:3000/search', {
-        method:"POST",
+      fetch('http://localhost:7070/query/get', {
+        method:"PUT",
         headers: {
-            'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: [serialize(searchTerm)],
-    }).then(response => response.json())
+        // as response.on is data, maybe data:, format of this
+        body:serializedTerm,
+    }).then(response => {
+      
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+      return response.json(); // Parse the JSON in the response
+  })
     .then(data => {
-        console.log(data);
-        // deserialize the data
+        queryResult = deserialize(JSON.stringify(data))[1][0][searchTerm]
 
-        document.getElementById('resultList').textContent = data.message;
+        document.getElementById('resultList').innerHTML = processQueryResult(queryResult);
     });
+  //   axios({
+  //     method: 'put',
+  //     url: 'http://localhost:7070/query/get',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     data: serializedTerm
+  // })
+  // .then(function(response) {
+  //     console.log(response.data.value[1]); // Handle the response data
+  //     var deserializedData = deserialize(JSON.stringify(response.data.value[1]));
+  //     console.log(deserializedData[searchTerm]);
+  //     document.getElementById('resultList').textContent = deserializedData[searchTerm];
+  // })
+  // .catch(function(error) {
+  //     console.error('Error:', error);
+  // });
+
+  
 });
+function processQueryResult(queryResult){
+  var htmlList = [];
+  for(let i = 0; i < queryResult.length - 1; i += 1){
+    input = queryResult[i];
+    input = input.trim();
+    if (input.startsWith('|')) {
+      input = input.substring(1);
+    }
+    input = input.trim();
+    input= input.split(/\s+/).filter(Boolean).join(' ');
+    // Splitting the input string by spaces to isolate URLs and their corresponding ranks
+    const parts = input.split(' ');
+    const linkMap = {};
+
+    // Processing parts in pairs to map URLs to their aggregated ranks
+    for (let i = 0; i < parts.length - 1; i += 2) {
+        const url = parts[i];
+        const rank = parseInt(parts[i + 1], 10);
+
+        if (linkMap[url]) {
+            linkMap[url] += rank;
+        } else {
+            linkMap[url] = rank;
+        }
+    }
+
+    // Sorting URLs based on the total aggregated rank
+    const sortedLinks = Object.entries(linkMap)
+        .sort((a, b) => b[1] - a[1])
+        .map(([url, rank]) => `<li>${url}</li>`);
+
+    // Generating an HTML list of sorted URLs with their ranks
+    htmlList = htmlList.concat(sortedLinks);
+  }
+  return htmlList.join('\n');
+//   // Step 1: Parse the array and aggregate ranks
+//   const linkMap = links.reduce((acc, item) => {
+//     const parts = item.trim().split(' ');
+//     const rank = parseInt(parts.pop(), 10);
+//     const url = parts.join(' ').trim().substring(2);
+//     acc[url] = (acc[url] || 0) + rank;
+//     return acc;
+//   }, {});
+
+// // Step 2: Sort the links by their aggregated ranks
+// const sortedLinks = Object.entries(linkMap)
+//   .sort((a, b) => b[1] - a[1])
+//   .map(([url, rank]) => ({ url, rank }));
+
+// // Step 3: Generate HTML output
+// const listItems = sortedLinks.map(link => `<li>${link.url} (Rank: ${link.rank})</li>`).join('\n');
+// return listItems
+}
 // Class for the smallest unit of serialization
 function Node(value, type, id=-1) {
     this.value = value; // value of the node (could be nested)

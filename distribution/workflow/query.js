@@ -5,7 +5,7 @@
  */
 function QueryWorkflow(config) {
   this.gid = config.gid || 'all';
-  this.keys = config.indexes || [];
+  this.keys = config.keys || [];
   this.memory = config.memory || true;
   this.persistAfterReduce = config.persistAfterReduce || true;
   this.keepKeysOrder = config.keepKeysOrder || true;
@@ -23,8 +23,12 @@ QueryWorkflow.prototype.map = function(key, value) {
     // Remember to keep the group id the same. Dynamic group id will require additional work
     global.distribution.crawler.mem.get('query', (error, result) => {
       if (error) {
-        reject(error);
+        console.log("error happened in query workflow:",error);
+        resolve({});
+        // reject(error);
       } else {
+        console.log("query workflow result:",result);
+        console.log("value here",value)
         const out = {};
         const lines = value.split('\n');
         const searchRegex = new RegExp(`\\b${result}\\b`, 'gi');

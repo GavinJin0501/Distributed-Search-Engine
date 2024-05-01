@@ -66,7 +66,12 @@ DistributedInMemoryService.prototype.put = function(value, key, cb) {
     distribution[this.context.gid].comm.send([value, metaData], remote, cb);
     return;
   }
-
+  // if key is already object, send to all of them (used for crawler)
+  if (typeof key === 'object') {
+    const remote = {service: 'mem', method: 'put'};
+    distribution[this.context.gid].comm.send([value, key], remote, cb);
+    return;
+  }
   // if the key is not null, choose a node to put the key-value pair
   distribution.local.groups.get(this.context.gid, (err, group) => {
     if (err) {

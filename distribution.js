@@ -28,20 +28,20 @@ global.spawnSync = spawnSync;
 // });
 global.convert = convert;
 
-// log output to a file
-const fs = require('fs');
-// const path = require('path');
+// // log output to a file
+// const fs = require('fs');
+// // const path = require('path');
 
-const logFilePath = path.join(__dirname, 'log.txt');
-if (fs.existsSync(logFilePath)) {
-  fs.truncateSync(logFilePath, 0);
-}
-const logStream = fs.createWriteStream(logFilePath, {flags: 'a'});
+// const logFilePath = path.join(__dirname, 'log.txt');
+// if (fs.existsSync(logFilePath)) {
+//   fs.truncateSync(logFilePath, 0);
+// }
+// const logStream = fs.createWriteStream(logFilePath, {flags: 'a'});
 
-console.log = function() {
-  const message = Array.from(arguments).join(' ');
-  logStream.write(message + '\n');
-};
+// console.log = function() {
+//   const message = Array.from(arguments).join(' ');
+//   logStream.write(message + '\n');
+// };
 
 // Default configuration
 global.nodeConfig = global.nodeConfig || {

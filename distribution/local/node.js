@@ -5,22 +5,32 @@ const node = global.nodeConfig;
 
 const start = function(started) {
   const server = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // This allows all domains
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     // Callback function to send back response
     const serviceCallback = (e, v) => {
       res.end(util.serialize([e, v]));
     };
 
     let data = '';
-    req.on('data', (chunk) => data += chunk);
-
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
     req.on('end', () => {
       const {method, url} = req;
-      const message = util.deserialize(data).message;
-
+      // Handle preflight requests
+      if (req.method === 'OPTIONS') {
+        // Stop here for preflight requests
+        res.writeHead(204); // No Content
+        res.end();
+        return;
+      }
       if (method !== 'PUT') {
         const error = new Error('Http method must be PUT!');
         serviceCallback(error, null);
       }
+      const message = util.deserialize(data).message;
 
       /*
         The path of the http request will determine the service to be used.

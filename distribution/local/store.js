@@ -97,7 +97,12 @@ PersistentMemoryService.prototype.get = function(key, cb) {
       if (err) {
         cb(new Error(err.message), null);
       } else {
-        cb(null, serialization.deserialize(data));
+        if(filePath.endsWith('.txt')){
+          cb(null,data.toString());
+        }else{
+          cb(null, serialization.deserialize(data));
+        }
+       
       }
     });
   }

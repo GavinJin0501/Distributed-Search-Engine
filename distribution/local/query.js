@@ -15,7 +15,8 @@ function defaultCallback(error, value) {
 }
 
 QueryService.prototype.get = function(queryInput, cb=defaultCallback) {
-  global.distribution['crawler'].mem.put(key, (e, v) => {
+  console.log("query input received:",queryInput);
+  global.distribution['crawler'].mem.put(queryInput,{key: 'query', gid: 'crawler'}, (e, v) => { // key here or queryinput?
     groups.get('crawler', (e, v) => {
       const numberOfNodes = Object.keys(v).length;
       const queryConfig = {
@@ -24,6 +25,8 @@ QueryService.prototype.get = function(queryInput, cb=defaultCallback) {
       };
       const queryService = queryWorkflow(queryConfig);
       global.distribution['crawler'].mr.exec(queryService, (e, v) => {
+        console.log("error happened in query",e);
+        console.log("query value received:",v);
         cb(e, v);
       });
     });
