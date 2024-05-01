@@ -16,7 +16,7 @@ IndexerWorkflow.prototype.map = function(key='key', value='value') {
   console.error('Inside indexer map');
   const scriptPath = global.path.join(global.dirname, './distribution/workflow/indexer_helper/index.sh');
   const indexFilePath = global.path.join(global.dirname, './distribution/workflow/indexer_helper');
-  const indexHelperPath = global.path.join(global.dirname, `/store/s-${SID}/${this.gid}/index-${SID}_${this.gid}.txt`);
+  const indexHelperPath = global.path.join(global.dirname, `/store/s-${SID}/${this.gid}/index.txt`);
   console.log('indexHelper path is : ' + indexHelperPath);
   return new Promise((resolve, reject) => {
     global.distribution.local.store.get({key: null, gid: this.gid}, (e, v) => {
@@ -80,7 +80,9 @@ IndexerWorkflow.prototype.preReduce = function() {
 };
 
 IndexerWorkflow.prototype.reduce = function(key='indexed', value='yes') {
-  return {[key]: value};
+  const Obj = {[key]: value};
+  console.log(Obj);
+  return Obj;
 };
 
 const indexerWorkflow = (config) => new IndexerWorkflow(config);
