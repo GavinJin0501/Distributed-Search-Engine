@@ -1,27 +1,21 @@
-# M5: Distributed Execution Engine
-> Full name: `Jiayao Jin`
-> Email:  `jiayao_jin@brown.edu`
-> Username:  `jjin57`
+# Link to the report:
 
-## Summary
-> Summarize your implementation, including key challenges you encountered
+## How to run the Prgram & the test
+### Starting the Worker Node
 
-My implementation comprises `2` new software components, totaling `~390` added lines of code over the previous implementation. Key challenges included `<1, 2, 3 + how you solved them>`.
+To start the worker node on your local machine, you can use the following command. This command sets the `PORT` environment variable to `7001` `7002` ... as defined in coordinatorNode.js, which specifies the port number on which the worker node will listen, and then starts the worker node script located at `./test/workerNode.js`.
 
-## Correctness & Performance Characterization
-> Describe how you characterized the correctness and performance of your implementation
+```bash
+PORT=7001 node ./test/workerNode.js
+```
+### Starting the Coordinator Node
 
-*Correctness*:
-`I pass the given tests and wrotes tests for the in-memory extra features. I also wrote tests for the workflow`
+```bash
+PORT=7001 node ./test/coordinatorNode.js
+```
 
-*Performance*:
-
-## Key Feature
-> Which extra features did you implement and how?
-`I implemented in-memory storage option by adding a field in the config. If it is in-memory, I will skip the process of persisting the intermediate values into the local file system.`
-
-## Time to Complete
-> Roughly, how many hours did this milestone take you to complete?
-
-Hours: `12`
+### Run the workflow in coordinator.test.js
+```bash
+npx jest ./test/coordinator.test.js
+```
 

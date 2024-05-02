@@ -114,7 +114,7 @@ MapReduceService.prototype.map = function(cb) {
     store.get(metaKey, (err, val) => {
       if (!err) {
         let mappedVal = this.mapFunc(key, val);
-        console.log("mapped Val",mappedVal);
+        // console.log("mapped Val",mappedVal);
         if (mappedVal instanceof Promise) {
           mappedVal.then((data) => {
             mappedVal = data;
