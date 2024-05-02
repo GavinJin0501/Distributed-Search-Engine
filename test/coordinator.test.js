@@ -166,6 +166,7 @@ test('indexer', (done) => {
   console.log('starting test');
   const config = {
     gid: 'crawler',
+    urls: Object.keys(crwalerGroup).map((node) => 'placeholder'),
   };
   const indexer = indexerWorkflow(config);
   distribution.crawler.mr.exec(indexer, (e, v)=>{
@@ -176,24 +177,57 @@ test('indexer', (done) => {
 }, 20000000);
 
 // test query
-test('query',(done)=>{
-const n = 1000; // 1, 10, .....
+// test('query',(done)=>{
+// const n = 1000; // 1, 10, .....
 
-for (let i = 0; i < n; i++) {
-  global.distribution['crawler'].mem.put('network',{key: 'query', gid: 'crawler'}, (e, v) => { // key here or queryinput?
-    groups.get('crawler', (e, v) => {
-      const numberOfNodes = Object.keys(v).length;
-      const queryConfig = {
-        keys: Array(numberOfNodes).fill('index.txt'),
-        gid: 'crawler',
-      };
-      const queryService = queryWorkflow(queryConfig);
-      global.distribution['crawler'].mr.exec(queryService, (e, v) => {
-        console.log("error happened in query",e);
-        console.log("query value received:",v);
+// for (let i = 0; i < n; i++) {
+//   global.distribution['crawler'].mem.put('network',{key: 'query', gid: 'crawler'}, (e, v) => { // key here or queryinput?
+//     groups.get('crawler', (e, v) => {
+//       const numberOfNodes = Object.keys(v).length;
+//       const queryConfig = {
+//         keys: Array(numberOfNodes).fill('index.txt'),
+//         gid: 'crawler',
+//       };
+//       const queryService = queryWorkflow(queryConfig);
+//       global.distribution['crawler'].mr.exec(queryService, (e, v) => {
+//         console.log("error happened in query",e);
+//         console.log("query value received:",v);
+//       });
+//     });
+//   });
+// }
+// done()
+// })
+test('query', (done) => {
+  const n = 100; // 1, 10, .....
+  let totalTime = 0;
+  let completed = 0;
+
+  for (let i = 0; i < n; i++) {
+      const start = performance.now();
+      global.distribution['crawler'].mem.put('network', { key: 'query', gid: 'crawler' }, (e, v) => {
+          const numberOfNodes = Object.keys(v).length;
+          console.log("number of nodes",numberOfNodes);
+          const queryConfig = {
+              keys:Object.keys(crwalerGroup).map((node) => 'index.txt'),
+              gid: 'crawler',
+          };
+          console.log("queryConfig",queryConfig);
+          const queryService = queryWorkflow(queryConfig);
+          global.distribution['crawler'].mr.exec(queryService, (e, v) => {
+              const end = performance.now();
+              totalTime += end - start;
+              completed++;
+              // console.log('error happened in query', e);
+              // console.log('query value received:', v);
+
+              if (completed === n) {
+                 console.log('n',n);
+                  console.log('Avg time is:', totalTime / n, 'ms');
+                  done();
+              }
+          });
       });
-    });
-  });
-}
-done()
-})
+  }
+
+},50000);

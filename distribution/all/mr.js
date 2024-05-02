@@ -124,6 +124,7 @@ DistributedMapReduceService.prototype.exec = function(serviceConfig, callback) {
     } else {
       // need to check if keys can be splitted equally
       if (serviceConfig.keys.length % numOfNodes !== 0) {
+        console.log("hihihi",serviceConfig.keys.length, numOfNodes);
         callback(
             new Error('Under keepKeysOrder, keys should be splitted equally'),
             null);

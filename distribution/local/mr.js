@@ -123,7 +123,6 @@ MapReduceService.prototype.map = function(cb) {
             } else if (Object.values(mappedVal).length > 0) {
               this.afterMapList.push(mappedVal);
             }
-
             doComplete();
           });
           return;
