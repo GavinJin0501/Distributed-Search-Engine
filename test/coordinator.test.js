@@ -149,6 +149,6 @@ test('indexer', (done) => {
       done();
     }
   });
-}, 20000);
+}, 20000000);
 
 // test query

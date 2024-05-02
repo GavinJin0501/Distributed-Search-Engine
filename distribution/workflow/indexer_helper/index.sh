@@ -11,12 +11,20 @@ scriptLog="$4/script_log.txt"
 
 
 echo "$1" |
-  $process "$4" | tee -a "$scriptLog" |
-  $stem | tee -a "$scriptLog" |
-  $combine | tee -a "$scriptLog" |
-  $invert "$2" | tee -a "$scriptLog" |
-  $merge "$3" | tee -a "$scriptLog" |
-  sort -o "$3" | tee -a "$scriptLog"
+  $process "$4" |
+  $stem |
+  $combine |
+  $invert "$2"
+#  $merge "$3" |
+#  sort -o "$3"
+
+#  echo "$1" |
+#    $process "$4" | tee -a "$scriptLog" |
+#    $stem | tee -a "$scriptLog" |
+#    $combine | tee -a "$scriptLog" |
+#    $invert "$2" | tee -a "$scriptLog" |
+#    $merge "$3" | tee -a "$scriptLog" |
+#    sort -o "$3" | tee -a "$scriptLog"
 
 # echo "$1" |
 #   ./process.sh |
