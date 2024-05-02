@@ -11,7 +11,9 @@ body {
 .search-container {
     text-align: center;
 }
-
+.search-container li{
+    text-align: left;
+}
 #searchForm input[type="text"] {
     padding: 10px;
     margin-right: 5px;

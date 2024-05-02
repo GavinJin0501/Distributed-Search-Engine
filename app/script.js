@@ -72,7 +72,7 @@ function processQueryResult(queryResult){
     // Sorting URLs based on the total aggregated rank
     const sortedLinks = Object.entries(linkMap)
         .sort((a, b) => b[1] - a[1])
-        .map(([url, rank]) => `<li>${url}</li>`);
+        .map(([url, rank]) => `<li><a href="${url}">${url}</a></li>`);
 
     // Generating an HTML list of sorted URLs with their ranks
     htmlList = htmlList.concat(sortedLinks);
